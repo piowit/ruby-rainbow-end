@@ -234,6 +234,9 @@ function updateDecorations() {
       range: new vscode.Range(startPos, endPos)
     };
 
+    const lineStart = text.lastIndexOf('\n', startIndex) + 1;
+    const isStartOfLine = text.slice(lineStart, startIndex).trim().length === 0;
+
     if (languageConfiguration.closeTokens.indexOf(match[2]) > -1) {
       if (deep > 0) {
         deep -= 1;
@@ -245,10 +248,12 @@ function updateDecorations() {
       }
     } else if (languageConfiguration.openTokens.indexOf(match[2]) > -1) {
       options[deep % deepDecorations.length].push(decoration);
-      deep += 1;
-    } else {
-      if (match[1].length === 0 || match[1].match("^[\\s\n]+$")) {
-        options[deep % deepDecorations.length].push(decoration);
+      if (isStartOfLine || match[2] !== 'if' && match[2] !== 'unless') {
+        deep += 1;
+      }
+    } else if (languageConfiguration.inlineOpenTokens.indexOf(match[2]) > -1) {
+      options[deep % deepDecorations.length].push(decoration);
+      if (isStartOfLine) {
         deep += 1;
       }
     }
